@@ -105,7 +105,7 @@ export function Home() {
         }
     }, [iniciado, pausado, gameOver]);
 
-    const multiplicador = Math.floor(score / 100) + 1;
+    const multiplicador = Math.floor(score / 50) + 1;
     const multiplicadorRef = useRef(multiplicador);
     multiplicadorRef.current = multiplicador;
 
@@ -116,7 +116,7 @@ export function Home() {
         let spawnTimer = 0;
 
         const loop = (time: number) => {
-            const delta = Math.min((time - lastTime) / 1000, 0.01);
+            const delta = Math.min((time - lastTime) / 1000, 1);
             lastTime = time;
 
             if (gameState.current.iniciado && !gameState.current.pausado && !gameState.current.gameOver) {
