@@ -126,7 +126,7 @@ export function Home() {
                 const mult = multiplicadorRef.current;
                 const taxaSpawn = Math.max(0.4, 1.2 - (mult * 0.08));
 
-                if (spawnTimer >= taxaSpawn && objetosRef.current.length < 8) {
+                if (spawnTimer >= taxaSpawn && objetosRef.current.length < 10) {
                     spawnTimer = 0;
                     const tipoAleatorio: 'inimigo' | 'vida' = Math.random() > 0.88 ? 'vida' : 'inimigo';
                     objetosRef.current.push({
