@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { Shield, Zap, Skull, Trophy, Play, RotateCcw, Pause, Heart, Castle, Flame, Award, Maximize, Minimize } from 'lucide-preact';
+import { Shield, Rocket, Skull, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize } from 'lucide-preact';
 
 interface Entidade {
     id: number;
@@ -327,15 +327,13 @@ export function Home() {
                     className="absolute transform -translate-x-1/2 -translate-y-1/2 text-zinc-600 z-10 will-change-transform"
                     style={{ left: `${posRender}%`, top: `80%` }}
                 >
-                    <Castle className="w-20 h-20 opacity-40 text-cyan-900" />
-                </div>
 
                 <div
                     className="absolute transform -translate-x-1/2 -translate-y-1/2 text-cyan-400 z-20 will-change-transform"
                     style={{ left: `${posRender}%`, top: `78%` }}
                 >
                     <div className="relative flex items-center justify-center w-12 h-12 bg-cyan-950/80 border-2 border-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.6)]">
-                        <Zap className="w-6 h-6 text-cyan-300" />
+                        <Rocket className="w-6 h-6 text-cyan-300" />
                     </div>
                 </div>
             </div>
