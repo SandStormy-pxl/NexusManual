@@ -233,7 +233,7 @@ export function Home() {
         <div 
             ref={containerRef}
             className="relative w-full h-screen bg-zinc-950 text-white overflow-hidden select-none flex flex-col justify-between p-3 touch-none">
-          <audio ref={audioRef} src="/trilha.mp3" loop preload="auto" />
+          <audio ref={audioRef} src="/trilha-1.mp3" loop preload="auto" />
             <div className="w-full flex justify-between items-center bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 z-30 shadow-lg gap-1">
                 <div className="flex items-center gap-1 text-cyan-400 font-bold text-xs">
                     <Shield className="w-4 h-4" />
