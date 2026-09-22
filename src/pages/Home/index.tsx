@@ -9,6 +9,7 @@ interface Entidade {
 }
 
 export function Home() {
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const [iniciado, setIniciado] = useState(false);
     const [pausado, setPausado] = useState(false);
     const [score, setScore] = useState(0);
@@ -218,13 +219,18 @@ export function Home() {
         posPlayerRef.current = 50;
         setPosRender(50);
         setIniciado(true);
+        if (audioRef.current) {
+    audioRef.current.volume = 0.4; // Volume de fundo suave
+    audioRef.current.play().catch(err => console.log("Bloqueado pelo browser:", err));
+}
+
     };
 
     return (
         <div 
             ref={containerRef}
-            className="relative w-full h-screen bg-zinc-950 text-white overflow-hidden select-none flex flex-col justify-between p-3 touch-none"
-        >
+            className="relative w-full h-screen bg-zinc-950 text-white overflow-hidden select-none flex flex-col justify-between p-3 touch-none">
+          <audio ref={audioRef} src="/trilha.mp3" loop preload="auto" />
             <div className="w-full flex justify-between items-center bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 z-30 shadow-lg gap-1">
                 <div className="flex items-center gap-1 text-cyan-400 font-bold text-xs">
                     <Shield className="w-4 h-4" />
