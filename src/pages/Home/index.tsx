@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { Shield, Sparkle, Meteor, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize } from 'lucide-preact';
+import { Shield, Sparkles, Meteor, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize } from 'lucide-preact';
 
 interface Entidade {
     id: number;
@@ -318,7 +318,7 @@ export function Home() {
                         {obj.tipo === 'vida' ? (
                             <Heart className="w-7 h-7 text-red-500 animate-bounce fill-red-500" />
                         ) : (
-                            <Sparkle className="w-8 h-8 text-rose-600 animate-pulse" />
+                            <Sparkles className="w-8 h-8 text-rose-600 animate-pulse" />
                         )}
                     </div>
                 ))}
