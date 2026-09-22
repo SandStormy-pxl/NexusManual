@@ -38,7 +38,6 @@ export function Home() {
     const highScoreRef = useRef(highScore);
     highScoreRef.current = highScore;
 
-    // Acumulador de tempo para pontuação baseada em segundos reais
     const scoreTimerRef = useRef(0);
 
     useEffect(() => {
@@ -94,11 +93,23 @@ export function Home() {
         };
     }, [iniciado, gameOver, pausado]);
 
+    // CONTROLE CENTRALIZADO DE ÁUDIO (Sem travar o loop de física)
+    useEffect(() => {
+        if (!audioRef.current) return;
+
+        if (iniciado && !pausado && !gameOver) {
+            audioRef.current.volume = 0.4;
+            audioRef.current.play().catch(err => console.log("Áudio bloqueado:", err));
+        } else {
+            audioRef.current.pause();
+        }
+    }, [iniciado, pausado, gameOver]);
+
     const multiplicador = Math.floor(score / 500) + 1;
     const multiplicadorRef = useRef(multiplicador);
     multiplicadorRef.current = multiplicador;
 
-    // LOOP DE FÍSICA COM SCORE CORRIGIDO (Baseado em tempo real, não em frames)
+    // LOOP DE FÍSICA LIMPO
     useEffect(() => {
         let animationFrameId: number;
         let lastTime = performance.now();
@@ -115,7 +126,6 @@ export function Home() {
                 const mult = multiplicadorRef.current;
                 const taxaSpawn = Math.max(0.4, 1.2 - (mult * 0.08));
 
-                // Gerador de novos objetos
                 if (spawnTimer >= taxaSpawn && objetosRef.current.length < 8) {
                     spawnTimer = 0;
                     const tipoAleatorio: 'inimigo' | 'vida' = Math.random() > 0.88 ? 'vida' : 'inimigo';
@@ -160,8 +170,7 @@ export function Home() {
                 objetosRef.current = novasEntidades;
                 setObjetosRender([...novasEntidades]);
 
-                // Score sobe 1 ponto fixo a cada 0.2 segundos (independente de quantos FPS o celular rodar)
-                if (scoreTimerRef.current >= 0.01) {
+                if (scoreTimerRef.current >= 0.2) { // Ajustado para 0.2s padrão para não subir insano
                     scoreTimerRef.current = 0;
                     setScore(s => {
                         const novoScore = s + 1;
@@ -172,8 +181,6 @@ export function Home() {
                         return novoScore;
                     });
                 }
-            }else{
-              audioRef.current?.pause()
             }
 
             animationFrameId = requestAnimationFrame(loop);
@@ -183,7 +190,6 @@ export function Home() {
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
 
-    // Manipulador de toque otimizado
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
@@ -221,11 +227,6 @@ export function Home() {
         posPlayerRef.current = 50;
         setPosRender(50);
         setIniciado(true);
-        if (audioRef.current) {
-        audioRef.current.volume = 0.4; // Volume de fundo suave
-        audioRef.current.play().catch(err => console.log("Bloqueado pelo browser:", err));
-}
-
     };
 
     return (
@@ -284,7 +285,7 @@ export function Home() {
                             ? `Sua torre caiu. Pontuação final: ${score} pts (Recorde: ${highScore}).` 
                             : pausado 
                             ? "Jogo pausado." 
-                            : "Score corrigido para progressão temporal estável. Defenda a torre!"}
+                            : "Áudio sincronizado com o estado do jogo. Defenda a torre!"}
                     </p>
                     <div className="flex gap-4">
                         {pausado ? (
@@ -340,7 +341,7 @@ export function Home() {
             </div>
 
             <div className="text-xs text-zinc-600 text-center pb-1 z-10">
-                Score Baseado em Tempo • 60 FPS
+                Áudio Blindado • 60 FPS
             </div>
         </div>
     );
