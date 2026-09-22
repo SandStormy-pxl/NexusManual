@@ -1,0 +1,51 @@
+<svg
+  viewBox="0 0 200 200"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-label="Nexus"
+>
+  <defs>
+    <linearGradient id="gradientId" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff" />
+      <stop offset="100%" stop-color="#0055ff" />
+    </linearGradient>
+  </defs>
+
+  <rect width="200" height="200" fill="#050814" />
+
+  <circle
+    cx="100"
+    cy="100"
+    r="72"
+    fill="none"
+    stroke="url(#gradientId)"
+    stroke-width="2"
+    opacity="0.8"
+  />
+
+  <!-- Anel interno (grosso) -->
+  <circle
+    cx="100"
+    cy="100"
+    r="64"
+    fill="none"
+    stroke="url(#gradientId)"
+    stroke-width="3.5"
+  />
+
+  <!-- Nós orbitais — N / E / S / O -->
+  <circle cx="100" cy="28" r="5" fill="url(#gradientId)" />
+  <circle cx="172" cy="100" r="5" fill="url(#gradientId)" />
+  <circle cx="100" cy="172" r="5" fill="url(#gradientId)" />
+  <circle cx="28" cy="100" r="5" fill="url(#gradientId)" />
+
+  <!-- Monograma "N" em traço tipo tubo neon -->
+  <path
+    d="M74 132 V68 L126 132 V68"
+    fill="none"
+    stroke="url(#gradientId)"
+    stroke-width="11"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
