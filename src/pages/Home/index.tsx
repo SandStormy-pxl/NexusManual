@@ -116,7 +116,7 @@ export function Home() {
         let spawnTimer = 0;
 
         const loop = (time: number) => {
-            const delta = Math.min((time - lastTime) / 1000, 1);
+            const delta = Math.min((time - lastTime) / 1000, 0.01);
             lastTime = time;
 
             if (gameState.current.iniciado && !gameState.current.pausado && !gameState.current.gameOver) {
