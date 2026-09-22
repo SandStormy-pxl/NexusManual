@@ -161,7 +161,7 @@ export function Home() {
                 setObjetosRender([...novasEntidades]);
 
                 // Score sobe 1 ponto fixo a cada 0.2 segundos (independente de quantos FPS o celular rodar)
-                if (scoreTimerRef.current >= 0.2) {
+                if (scoreTimerRef.current >= 0.01) {
                     scoreTimerRef.current = 0;
                     setScore(s => {
                         const novoScore = s + 1;
@@ -222,8 +222,8 @@ export function Home() {
         setPosRender(50);
         setIniciado(true);
         if (audioRef.current) {
-    audioRef.current.volume = 0.4; // Volume de fundo suave
-    audioRef.current.play().catch(err => console.log("Bloqueado pelo browser:", err));
+        audioRef.current.volume = 0.4; // Volume de fundo suave
+        audioRef.current.play().catch(err => console.log("Bloqueado pelo browser:", err));
 }
 
     };
