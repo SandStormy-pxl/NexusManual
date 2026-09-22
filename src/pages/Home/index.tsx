@@ -105,7 +105,7 @@ export function Home() {
         }
     }, [iniciado, pausado, gameOver]);
 
-    const multiplicador = Math.floor(score / 500) + 1;
+    const multiplicador = Math.floor(score / 100) + 1;
     const multiplicadorRef = useRef(multiplicador);
     multiplicadorRef.current = multiplicador;
 
