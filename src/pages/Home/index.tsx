@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { Shield, Sparkles, Meteor, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize } from 'lucide-preact';
+import { Shield, Sparkles, Rocket, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize } from 'lucide-preact';
 
 interface Entidade {
     id: number;
