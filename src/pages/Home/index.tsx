@@ -170,7 +170,7 @@ export function Home() {
                 objetosRef.current = novasEntidades;
                 setObjetosRender([...novasEntidades]);
 
-                if (scoreTimerRef.current >= 0.0.1) { // Ajustado para 0.2s padrão para não subir insano
+                if (scoreTimerRef.current >= 0.01) { // Ajustado para 0.2s padrão para não subir insano
                     scoreTimerRef.current = 0;
                     setScore(s => {
                         const novoScore = s + 1;
