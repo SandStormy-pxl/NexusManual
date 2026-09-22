@@ -333,7 +333,7 @@ export function Home() {
                     style={{ left: `${posRender}%`, top: `78%` }}
                 >
                     <div className="relative flex items-center justify-center w-12 h-12 bg-cyan-950/80 border-2 border-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.6)]">
-                        <Rocket className="w-6 h-6 text-cyan-300" />
+                        <Rocket className="w-6 h-6 text-cyan-300 -rotate-45" />
                     </div>
                 </div>
             </div>
