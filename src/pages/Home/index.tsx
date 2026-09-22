@@ -326,7 +326,7 @@ export function Home() {
                 <div 
                     className="absolute transform -translate-x-1/2 -translate-y-1/2 text-zinc-600 z-10 will-change-transform"
                     style={{ left: `${posRender}%`, top: `80%` }}
-                >
+                ></div>
 
                 <div
                     className="absolute transform -translate-x-1/2 -translate-y-1/2 text-cyan-400 z-20 will-change-transform"
@@ -343,6 +343,6 @@ export function Home() {
             </div>
         </div>
     );
-}
+
 
 export default Home;
