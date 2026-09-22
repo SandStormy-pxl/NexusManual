@@ -172,6 +172,8 @@ export function Home() {
                         return novoScore;
                     });
                 }
+            }else{
+              audioRef.current?.pause()
             }
 
             animationFrameId = requestAnimationFrame(loop);
