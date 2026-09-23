@@ -451,4 +451,11 @@ export function Home() {
                 </div>
             </div>
 
-            <div
+            <div className="text-xs text-zinc-600 text-center pb-1 z-10">
+                Nexus Defense • Super Laser & Escudo Ativos
+            </div>
+        </div>
+    );
+}
+
+export default Home;
