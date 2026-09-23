@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { Shield, Sparkles, Rocket, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize, Sparkle, Disc, Zap } from 'lucide-preact';
+import { Shield, Sparkles, Rocket, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize, Disc, Zap, Crosshair, Bomb } from 'lucide-preact';
 
 interface Entidade {
     id: number;
     x: number;
     y: number;
-    tipo: 'inimigo' | 'vida' | 'meteoro' | 'escudo';
+    tipo: 'inimigo' | 'vida' | 'meteoro' | 'escudo' | 'laser_duplo' | 'bomba';
 }
 
 interface Tiro {
     id: number;
     x: number;
     y: number;
+    tipo?: 'normal' | 'duplo';
 }
 
 interface Particula {
@@ -22,6 +23,15 @@ interface Particula {
     cor: string;
 }
 
+interface Chefao {
+    ativo: boolean;
+    x: number;
+    y: number;
+    vida: number;
+    vidaMax: number;
+    direcao: number;
+}
+
 interface Nave {
     id: string;
     nome: string;
@@ -29,7 +39,6 @@ interface Nave {
     corBg: string;
     icone: any;
 }
-
 const NAVES: Nave[] = [
     { id: 'padrao', nome: 'Poco Interceptor', corBorda: 'border-cyan-400', corBg: 'bg-cyan-950/80', icone: Rocket },
     { id: 'furia', nome: 'Fúria Vermelha', corBorda: 'border-rose-500', corBg: 'bg-rose-950/80', icone: Sparkles },
@@ -49,6 +58,7 @@ export function Home() {
     const [highScore, setHighScore] = useState(0);
     const [vida, setVida] = useState(100);
     const [temEscudo, setTemEscudo] = useState(false);
+    const [laserDuploAtivo, setLaserDuploAtivo] = useState(false);
     const [superCarga, setSuperCarga] = useState(0);
     const [gameOver, setGameOver] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -63,15 +73,18 @@ export function Home() {
     const [objetosRender, setObjetosRender] = useState<Entidade[]>([]);
     const [tirosRender, setTirosRender] = useState<Tiro[]>([]);
     const [particulasRender, setParticulasRender] = useState<Particula[]>([]);
+    const [chefaoRender, setChefaoRender] = useState<Chefao | null>(null);
     
     const objetosRef = useRef<Entidade[]>([]);
     const tirosRef = useRef<Tiro[]>([]);
     const particulasRef = useRef<Particula[]>([]);
+    const chefaoRef = useRef<Chefao>({ ativo: false, x: 50, y: 15, vida: 200, vidaMax: 200, direcao: 1 });
     
     const containerRef = useRef<HTMLDivElement>(null);
     const gameState = useRef({ iniciado: false, pausado: false, gameOver: false });
-
-      gameState.current = { iniciado, pausado, gameOver };
+    const laserDuploRef = useRef(false);
+    laserDuploRef.current = laserDuploAtivo;
+    gameState.current = { iniciado, pausado, gameOver };
 
     const scoreRef = useRef(score);
     scoreRef.current = score;
@@ -87,6 +100,7 @@ export function Home() {
 
     const scoreTimerRef = useRef(0);
     const tiroTimerRef = useRef(0);
+    const laserTimerRef = useRef(0);
 
     useEffect(() => {
         const salvo = localStorage.getItem('nexus_highscore');
@@ -131,6 +145,24 @@ export function Home() {
         }, 600);
     };
 
+    const ativarBombaNuclear = () => {
+        dispararTremido();
+        objetosRef.current = [];
+        setObjetosRender([]);
+        if (chefaoRef.current.ativo) {
+            chefaoRef.current.vida -= 80;
+            if (chefaoRef.current.vida <= 0) {
+                chefaoRef.current.ativo = false;
+                setChefaoRender(null);
+                setScore(s => s + 500);
+                adicionarParticula(50, 20, "+500 CHEFÃO DESTRUÍDO!", "#a855f7");
+            } else {
+                setChefaoRender({ ...chefaoRef.current });
+            }
+        }
+        adicionarParticula(50, 50, "BOMBA LIMPOU A TELA!", "#ef4444");
+    };
+
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden && iniciado && !gameOver && !pausado) {
@@ -155,7 +187,6 @@ export function Home() {
     const multiplicador = Math.floor(score / 200) + 1;
     const multiplicadorRef = useRef(multiplicador);
     multiplicadorRef.current = multiplicador;
-
     useEffect(() => {
         let animationFrameId: number;
         let lastTime = performance.now();
@@ -170,33 +201,73 @@ export function Home() {
                 scoreTimerRef.current += delta;
                 tiroTimerRef.current += delta;
 
-                const mult = multiplicadorRef.current;
-                const taxaSpawn = Math.max(0.35, 1.1 - (mult * 0.07));
-
-                if (tiroTimerRef.current >= 0.35) {
-                    tiroTimerRef.current = 0;
-                    const xAtual = posPlayerRef.current;
-                    tirosRef.current.push({ id: Date.now() + Math.random(), x: xAtual, y: 75 });
+                if (laserDuploRef.current) {
+                    laserTimerRef.current += delta;
+                    if (laserTimerRef.current > 7) {
+                        setLaserDuploAtivo(false);
+                        laserTimerRef.current = 0;
+                    }
                 }
 
-                if (spawnTimer >= taxaSpawn && objetosRef.current.length < 12) {
+                const mult = multiplicadorRef.current;
+                const taxaSpawn = Math.max(0.30, 1.0 - (mult * 0.06));
+
+                // Controle do Chefão a cada múltiplos de 1000 pontos
+                if (scoreRef.current > 0 && scoreRef.current % 1000 === 0 && !chefaoRef.current.ativo) {
+                    chefaoRef.current = {
+                        ativo: true,
+                        x: 50,
+                        y: 18,
+                        vida: 250 + (mult * 50),
+                        vidaMax: 250 + (mult * 50),
+                        direcao: 1
+                    };
+                    setChefaoRender({ ...chefaoRef.current });
+                    adicionarParticula(50, 20, "ALERTA: CHEFÃO DETECTADO!", "#ef4444");
+                }
+
+                if (tiroTimerRef.current >= 0.32) {
+                    tiroTimerRef.current = 0;
+                    const xAtual = posPlayerRef.current;
+                    if (laserDuploRef.current) {
+                        tirosRef.current.push(
+                            { id: Date.now() + Math.random(), x: xAtual - 3, y: 75, tipo: 'duplo' },
+                            { id: Date.now() + Math.random() + 1, x: xAtual + 3, y: 75, tipo: 'duplo' }
+                        );
+                    } else {
+                        tirosRef.current.push({ id: Date.now() + Math.random(), x: xAtual, y: 75, tipo: 'normal' });
+                    }
+                }
+
+                if (!chefaoRef.current.ativo && spawnTimer >= taxaSpawn && objetosRef.current.length < 14) {
                     spawnTimer = 0;
                     const rand = Math.random();
                     let tipoAleatorio: Entidade['tipo'] = 'inimigo';
-                    if (rand > 0.92) tipoAleatorio = 'escudo';
-                    else if (rand > 0.82) tipoAleatorio = 'vida';
-                    else if (rand > 0.65) tipoAleatorio = 'meteoro';
+                    if (rand > 0.94) tipoAleatorio = 'bomba';
+                    else if (rand > 0.88) tipoAleatorio = 'laser_duplo';
+                    else if (rand > 0.80) tipoAleatorio = 'escudo';
+                    else if (rand > 0.70) tipoAleatorio = 'vida';
+                    else if (rand > 0.52) tipoAleatorio = 'meteoro';
 
                     objetosRef.current.push({
                         id: Date.now() + Math.random(),
-                        x: Math.random() * 84 + 8,
+                        x: Math.random() * 82 + 9,
                         y: 0,
                         tipo: tipoAleatorio
                     });
                 }
 
-                const velocidadeQueda = (38 + (mult * 8)) * delta;
-                const velocidadeTiro = 100 * delta;
+                // Movimento do Chefão
+                if (chefaoRef.current.ativo) {
+                    chefaoRef.current.x += chefaoRef.current.direcao * 25 * delta;
+                    if (chefaoRef.current.x > 80 || chefaoRef.current.x < 20) {
+                        chefaoRef.current.direcao *= -1;
+                    }
+                    setChefaoRender({ ...chefaoRef.current });
+                }
+
+                const velocidadeQueda = (40 + (mult * 9)) * delta;
+                const velocidadeTiro = 110 * delta;
                 const playerX = posPlayerRef.current;
 
                 let novosTiros: Tiro[] = [];
@@ -209,10 +280,32 @@ export function Home() {
                 }
                 tirosRef.current = novosTiros;
 
+                // Colisão de tiros com o Chefão
+                if (chefaoRef.current.ativo) {
+                    for (let t = 0; t < tirosRef.current.length; t++) {
+                        let tiro = tirosRef.current[t];
+                        if (Math.abs(tiro.x - chefaoRef.current.x) < 14 && Math.abs(tiro.y - chefaoRef.current.y) < 8) {
+                            tirosRef.current.splice(t, 1);
+                            chefaoRef.current.vida -= (tiro.tipo === 'duplo' ? 12 : 7);
+                            adicionarParticula(tiro.x, tiro.y, "-DANO", "#a855f7");
+
+                            if (chefaoRef.current.vida <= 0) {
+                                chefaoRef.current.ativo = false;
+                                setChefaoRender(null);
+                                setScore(s => s + 800);
+                                adicionarParticula(50, 25, "+800 CHEFÃO DESTRUÍDO!", "#f59e0b");
+                            } else {
+                                setChefaoRender({ ...chefaoRef.current });
+                            }
+                            break;
+                        }
+                    }
+                }
+
                 let novasEntidades: Entidade[] = [];
                 for (let i = 0; i < objetosRef.current.length; i++) {
                     let obj = objetosRef.current[i];
-                    let velAtual = obj.tipo === 'meteoro' ? velocidadeQueda * 1.7 : velocidadeQueda;
+                    let velAtual = obj.tipo === 'meteoro' ? velocidadeQueda * 1.6 : velocidadeQueda;
                     let novoY = obj.y + velAtual;
 
                     let atingidoPorTiro = false;
@@ -223,14 +316,14 @@ export function Home() {
                             tirosRef.current.splice(t, 1);
                             
                             if (obj.tipo === 'meteoro' || obj.tipo === 'inimigo') {
-                                const pts = obj.tipo === 'meteoro' ? 30 : 10;
+                                const pts = obj.tipo === 'meteoro' ? 35 : 12;
                                 setScore(s => s + pts);
                                 adicionarParticula(obj.x, novoY, `+${pts}`, obj.tipo === 'meteoro' ? '#f59e0b' : '#38bdf8');
                                 setSuperCarga(sc => {
-                                    const novaCarga = sc + 15;
+                                    const novaCarga = sc + 12;
                                     if (novaCarga >= 100) {
                                         objetosRef.current = objetosRef.current.filter(o => o.y > 50);
-                                        adicionarParticula(playerX, 70, "SUPER LASER!", "#a855f7");
+                                        adicionarParticula(playerX, 70, "SUPER LASER ATIVADO!", "#a855f7");
                                         return 0;
                                     }
                                     return novaCarga;
@@ -249,6 +342,12 @@ export function Home() {
                         } else if (obj.tipo === 'escudo') {
                             setTemEscudo(true);
                             adicionarParticula(playerX, 75, "ESCUDO ATIVO!", "#3b82f6");
+                        } else if (obj.tipo === 'laser_duplo') {
+                            setLaserDuploAtivo(true);
+                            laserTimerRef.current = 0;
+                            adicionarParticula(playerX, 75, "LASER DUPLO!", "#06b6d4");
+                        } else if (obj.tipo === 'bomba') {
+                            ativarBombaNuclear();
                         } else {
                             if (temEscudoRef.current) {
                                 setTemEscudo(false);
@@ -293,8 +392,7 @@ export function Home() {
         animationFrameId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
-
-      const handleMove = (clientX: number) => {
+    const handleMove = (clientX: number) => {
         if (!containerRef.current || !iniciado || pausado || gameOver) return;
         const rect = containerRef.current.getBoundingClientRect();
         const xRelativo = clientX - rect.left;
@@ -317,10 +415,13 @@ export function Home() {
         setScore(0);
         setVida(100);
         setTemEscudo(false);
+        setLaserDuploAtivo(false);
         setSuperCarga(0);
         objetosRef.current = [];
         tirosRef.current = [];
         particulasRef.current = [];
+        chefaoRef.current = { ativo: false, x: 50, y: 15, vida: 200, vidaMax: 200, direcao: 1 };
+        setChefaoRender(null);
         setObjetosRender([]);
         setTirosRender([]);
         setGameOver(false);
@@ -339,7 +440,7 @@ export function Home() {
                     <div className="flex justify-between items-center pt-2">
                         <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-full">
                             <Flame className="w-4 h-4 text-cyan-400 animate-pulse" />
-                            <span className="text-xs tracking-wider uppercase text-cyan-400 font-bold">NEXUS INTERCEPTOR</span>
+                            <span className="text-xs tracking-wider uppercase text-cyan-400 font-bold">NEXUS STRIKE v2</span>
                         </div>
                         <button onClick={toggleFullScreen} className="p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-full text-slate-400 hover:text-white transition">
                             {isFullScreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
@@ -348,11 +449,11 @@ export function Home() {
 
                     <div className="my-auto space-y-6 text-center">
                         <div className="relative inline-block">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl blur-md opacity-40 animate-pulse"></div>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl blur-md opacity-40 animate-pulse"></div>
                             <div className="relative bg-slate-900 border border-slate-700/80 p-6 rounded-2xl shadow-xl">
                                 <Rocket className="w-16 h-16 mx-auto text-cyan-400 mb-2 animate-bounce" />
                                 <h1 className="text-2xl font-black tracking-tight text-white uppercase">Nexus Strike</h1>
-                                <p className="text-xs text-slate-400 mt-1">Arcade Espacial Mobile</p>
+                                <p className="text-xs text-slate-400 mt-1">Arcade Espacial Mobile • Boss Mode</p>
                             </div>
                         </div>
 
@@ -374,7 +475,7 @@ export function Home() {
                     </div>
 
                     <div className="space-y-3 pb-4">
-                        <button onClick={() => setIniciado(true)} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95">
+                        <button onClick={() => setIniciado(true)} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-black uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95">
                             <Play className="w-5 h-5 fill-black" /> Iniciar Missão
                         </button>
                         <div className="text-center text-[10px] text-slate-500">Mente de Anti-Herói • Foco & Eficiência</div>
@@ -415,12 +516,33 @@ export function Home() {
                                 <Heart className="w-3 h-3 fill-rose-500 text-rose-500" /> HP: {vida}%
                             </span>
                             {temEscudo && <span className="text-blue-400 flex items-center gap-1"><Shield className="w-3 h-3" /> ESCUDO</span>}
+                            {laserDuploAtivo && <span className="text-cyan-400 flex items-center gap-1"><Zap className="w-3 h-3" /> DUPLO</span>}
                             <span className="text-purple-400">SUPER: {superCarga}%</span>
                         </div>
                         <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
                             <div className="h-full bg-rose-500 transition-all duration-200" style={{ width: `${vida}%` }}></div>
                         </div>
                     </div>
+
+                    {chefaoRender && chefaoRender.ativo && (
+                        <div className="absolute top-24 left-4 right-4 z-20 bg-rose-950/40 border border-rose-500/60 p-2 rounded-xl backdrop-blur-sm">
+                            <div className="flex justify-between items-center text-[10px] font-bold text-rose-400 mb-1">
+                                <span className="flex items-center gap-1"><Flame className="w-3 h-3" /> CHEFÃO DO SETOR</span>
+                                <span>{Math.max(0, chefaoRender.vida)} / {chefaoRender.vidaMax} HP</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-rose-900">
+                                <div className="h-full bg-rose-600 transition-all duration-100" style={{ width: `${(chefaoRender.vida / chefaoRender.vidaMax) * 100}%` }}></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {chefaoRender && chefaoRender.ativo && (
+                        <div className="absolute -translate-x-1/2 -translate-y-1/2 z-20 transition-all duration-75" style={{ left: `${chefaoRender.x}%`, top: `${chefaoRender.y}%` }}>
+                            <div className="w-20 h-12 bg-rose-950 border-2 border-rose-500 rounded-2xl shadow-[0_0_20px_rgba(244,63,94,0.7)] flex flex-col items-center justify-center animate-pulse">
+                                <Flame className="w-6 h-6 text-rose-400" />
+                            </div>
+                        </div>
+                    )}
 
                     {tirosRender.map(t => (
                         <div key={t.id} className="absolute w-1 h-3 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)] -translate-x-1/2 -translate-y-1/2" style={{ left: `${t.x}%`, top: `${t.y}%` }} />
@@ -432,6 +554,8 @@ export function Home() {
                             {o.tipo === 'inimigo' && <div className="w-7 h-7 rounded-lg bg-rose-950/80 border border-rose-500 flex items-center justify-center shadow-lg"><Flame className="w-4 h-4 text-rose-400" /></div>}
                             {o.tipo === 'vida' && <div className="w-6 h-6 rounded-full bg-rose-900 border border-rose-400 flex items-center justify-center shadow-lg animate-pulse"><Heart className="w-3 h-3 text-white fill-white" /></div>}
                             {o.tipo === 'escudo' && <div className="w-6 h-6 rounded-full bg-blue-900 border border-blue-400 flex items-center justify-center shadow-lg animate-pulse"><Shield className="w-3 h-3 text-white" /></div>}
+                            {o.tipo === 'laser_duplo' && <div className="w-6 h-6 rounded-full bg-cyan-900 border border-cyan-400 flex items-center justify-center shadow-lg animate-bounce"><Zap className="w-3 h-3 text-cyan-300" /></div>}
+                            {o.tipo === 'bomba' && <div className="w-6 h-6 rounded-full bg-amber-950 border border-amber-500 flex items-center justify-center shadow-lg animate-pulse"><Bomb className="w-3 h-3 text-amber-400" /></div>}
                         </div>
                     ))}
 
@@ -477,7 +601,7 @@ export function Home() {
                             </div>
 
                             <div className="w-full max-w-xs space-y-3">
-                                <button onClick={resetarJogo} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95">
+                                <button onClick={resetarJogo} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-black uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95">
                                     <RotateCcw className="w-5 h-5" /> Tentar Novamente
                                 </button>
                                 <button onClick={() => setIniciado(false)} className="w-full py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold uppercase text-xs rounded-xl transition">
