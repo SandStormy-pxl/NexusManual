@@ -73,7 +73,6 @@ export function Home() {
                     onTouchMove={(e) => e.touches.length > 0 && game.handleMove(e.touches[0].clientX)}
                     className={`flex-1 relative overflow-hidden bg-slate-950 ${game.shake ? 'animate-bounce' : ''}`}
                 >
-                    {/* Header Minimalista */}
                     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-slate-950 via-slate-950/40 to-transparent">
                         <div className="flex items-center gap-3">
                             <button onClick={() => game.setPausado(!game.pausado)} className="p-2 bg-slate-900/60 border border-slate-800 rounded-lg text-slate-300">
@@ -95,7 +94,6 @@ export function Home() {
                         </div>
                     </div>
 
-                    {/* Barra de Vida & Status */}
                     <div className="absolute top-16 left-4 right-4 z-20 space-y-1">
                         <div className="flex justify-between items-center text-[10px] font-bold">
                             <span className="text-rose-400 flex items-center gap-1"><Heart className="w-3 h-3 fill-rose-500 text-rose-500" /> {game.vida}%</span>
@@ -109,7 +107,6 @@ export function Home() {
                         </div>
                     </div>
 
-                    {/* HUD do Chefão Atualizada */}
                     {game.chefaoRender?.ativo && (
                         <div className="absolute top-24 left-4 right-4 z-20 bg-slate-900/80 border border-rose-500/40 p-2.5 rounded-xl backdrop-blur-md">
                             <div className="flex justify-between items-center text-[10px] font-bold text-rose-400 mb-1">
@@ -122,7 +119,6 @@ export function Home() {
                         </div>
                     )}
 
-                    {/* Render do Chefão na Tela */}
                     {game.chefaoRender?.ativo && (
                         <div className="absolute -translate-x-1/2 -translate-y-1/2 z-20 transition-all duration-75" style={{ left: `${game.chefaoRender.x}%`, top: `${game.chefaoRender.y}%` }}>
                             <div className="w-20 h-12 bg-rose-950/60 border border-rose-500 rounded-xl flex items-center justify-center shadow-lg shadow-rose-950/50">
@@ -131,12 +127,10 @@ export function Home() {
                         </div>
                     )}
 
-                    {/* Tiros */}
                     {game.tirosRender.map(t => (
                         <div key={t.id} className={`absolute rounded-full -translate-x-1/2 -translate-y-1/2 ${t.tipo === 'boss' ? 'w-2 h-2 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]' : 'w-1 h-3 bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]'}`} style={{ left: `${t.x}%`, top: `${t.y}%` }} />
                     ))}
 
-                    {/* Entidades */}
                     {game.objetosRender.map(o => (
                         <div key={o.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center" style={{ left: `${o.x}%`, top: `${o.y}%` }}>
                             {o.tipo === 'meteoro' && <div className="w-7 h-7 rounded-full bg-slate-900 border border-amber-500/80 flex items-center justify-center"><Disc className="w-4 h-4 text-amber-400" /></div>}
@@ -148,14 +142,12 @@ export function Home() {
                         </div>
                     ))}
 
-                    {/* Partículas de Texto */}
                     {game.particulasRender.map(p => (
                         <div key={p.id} className="absolute -translate-x-1/2 -translate-y-1/2 text-[10px] font-black pointer-events-none z-30" style={{ left: `${p.x}%`, top: `${p.y}%`, color: p.cor }}>
                             {p.texto}
                         </div>
                     ))}
 
-                    {/* Player */}
                     <div className="absolute bottom-8 -translate-x-1/2 -translate-y-1/2 transition-all duration-75 pointer-events-none" style={{ left: `${game.posRender}%` }}>
                         <div className={`p-2.5 rounded-xl border ${game.naveSelecionada.corBorda} ${game.naveSelecionada.corBg} shadow-lg flex items-center justify-center`}>
                             {game.temEscudo && <div className="absolute -inset-1 rounded-xl border border-cyan-400 animate-ping opacity-40"></div>}
@@ -163,7 +155,6 @@ export function Home() {
                         </div>
                     </div>
 
-                    {/* Pausa */}
                     {game.pausado && !game.gameOver && (
                         <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-6 text-center space-y-4">
                             <h2 className="text-lg font-black text-white uppercase">Jogo Pausado</h2>
@@ -171,7 +162,6 @@ export function Home() {
                         </div>
                     )}
 
-                    {/* Game Over */}
                     {game.gameOver && (
                         <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center space-y-6">
                             <div className="space-y-1">
