@@ -47,13 +47,17 @@ const NAVES: Nave[] = [
 
 const MUSICAS = [
     { id: 'trilha-1', nome: 'Trilha Padrão (Cyber)', arquivo: '/trilha-1.mp3' },
-    { id: 'trilha-2', nome: 'Bass Boosted Minimal', arquivo: '/trilha-2.mp3' }
+    { id: 'trilha-2', nome: 'Bass Boosted Minimal', arquivo: '/trilha-2.mp3' },
+    { id: 'boss-theme', nome: 'Boss: Dark Synth (Pânico)', arquivo: '/boss-theme.mp3' }
+
 ];
 
 export function Home() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [iniciado, setIniciado] = useState(false);
     const [pausado, setPausado] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const bossAudioRef = useRef<HTMLAudioElement | null>(null);
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [vida, setVida] = useState(100);
@@ -224,6 +228,26 @@ export function Home() {
                     };
                     setChefaoRender({ ...chefaoRef.current });
                     adicionarParticula(50, 20, "ALERTA: CHEFÃO DETECTADO!", "#ef4444");
+                                  if (scoreRef.current > 0 && scoreRef.current % 1000 === 0 && !chefaoRef.current.ativo) {
+                    chefaoRef.current = {
+                        ativo: true,
+                        x: 50,
+                        y: 18,
+                        vida: 250 + (mult * 50),
+                        vidaMax: 250 + (mult * 50),
+                        direcao: 1
+                    };
+                    setChefaoRender({ ...chefaoRef.current });
+                    adicionarParticula(50, 20, "ALERTA: CHEFÃO DETECTADO!", "#ef4444");
+
+                    // TRUQUE: Toca o tema do boss e silencia a trilha comum
+                    if (audioRef.current) audioRef.current.pause();
+                    if (bossAudioRef.current) {
+                        bossAudioRef.current.volume = 0.6;
+                        bossAudioRef.current.play().catch(e => console.log("Audio boss bloqueado:", e));
+                    }
+                }
+
                 }
 
                 if (tiroTimerRef.current >= 0.32) {
@@ -434,7 +458,9 @@ export function Home() {
     return (
         <div className="w-full max-w-md mx-auto min-h-screen bg-slate-950 text-slate-100 flex flex-col font-mono select-none overflow-hidden relative border-x border-slate-900 shadow-2xl">
             <audio ref={audioRef} src={musicaSelecionada.arquivo} loop />
-
+            <audio ref={audioRef} src={musicaSelecionada.arquivo} loop />
+            <audio ref={bossAudioRef} src="/boss-theme.mp3" loop />
+          
             {!iniciado ? (
                 <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-slate-900 via-slate-950 to-black z-10">
                     <div className="flex justify-between items-center pt-2">
