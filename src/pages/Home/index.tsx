@@ -55,9 +55,16 @@ export function Home() {
                     </div>
 
                     <div className="space-y-3 pb-4">
-                        <button onClick={() => game.setIniciado(true)} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-black uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2">
-                            <Play className="w-5 h-5 fill-black" /> Iniciar Missão
-                        </button>
+                        <button onClick={() => {
+    game.setIniciado(true);
+    if (game.audioRef.current) {
+        game.audioRef.current.volume = 0.5;
+        game.audioRef.current.play().catch(e => console.log("Áudio bloqueado pelo browser:", e));
+    }
+}} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-black uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2">
+    <Play className="w-5 h-5 fill-black" /> Iniciar Missão
+</button>
+
                     </div>
                 </div>
             ) : (
