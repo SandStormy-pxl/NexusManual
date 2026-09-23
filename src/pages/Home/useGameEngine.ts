@@ -13,7 +13,6 @@ export function useGameEngine() {
     const [vida, setVida] = useState(100);
     const [temEscudo, setTemEscudo] = useState(false);
     const [laserDuploAtivo, setLaserDuploAtivo] = useState(false);
-    const [superCarga, setSuperCarga] = useState(0);
     const [gameOver, setGameOver] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [shake, setShake] = useState(false);
@@ -55,6 +54,7 @@ export function useGameEngine() {
     const scoreTimerRef = useRef(0);
     const tiroTimerRef = useRef(0);
     const laserTimerRef = useRef(0);
+    const bossShootTimerRef = useRef(0);
 
     useEffect(() => {
         const salvo = localStorage.getItem('nexus_highscore');
@@ -91,8 +91,10 @@ export function useGameEngine() {
         dispararTremido();
         objetosRef.current = [];
         setObjetosRender([]);
+        // Limpa tiros do boss também
+        tirosRef.current = tirosRef.current.filter(t => t.tipo !== 'boss');
         if (chefaoRef.current.ativo) {
-            chefaoRef.current.vida -= 80;
+            chefaoRef.current.vida -= 70;
             if (chefaoRef.current.vida <= 0) {
                 chefaoRef.current.ativo = false;
                 setChefaoRender(null);
@@ -104,10 +106,10 @@ export function useGameEngine() {
                 setChefaoRender({ ...chefaoRef.current });
             }
         }
-        adicionarParticula(50, 50, "BOMBA LIMPOU A TELA!", "#ef4444");
+        adicionarParticula(50, 50, "PULSO LIMPOU A TELA!", "#38bdf8");
     };
 
-    const multiplicador = Math.floor(score / 200) + 1;
+    const multiplicador = Math.floor(score / 250) + 1;
     const multiplicadorRef = useRef(multiplicador);
     multiplicadorRef.current = multiplicador;
 
@@ -134,15 +136,15 @@ export function useGameEngine() {
                 }
 
                 const mult = multiplicadorRef.current;
-                const taxaSpawn = Math.max(0.30, 1.0 - (mult * 0.06));
+                const taxaSpawn = Math.max(0.35, 1.0 - (mult * 0.05));
 
-                if (scoreRef.current > 0 && scoreRef.current % 1000 === 0 && !chefaoRef.current.ativo) {
+                if (scoreRef.current > 0 && scoreRef.current % 1200 === 0 && !chefaoRef.current.ativo) {
                     chefaoRef.current = {
                         ativo: true, x: 50, y: 18,
-                        vida: 250 + (mult * 50), vidaMax: 250 + (mult * 50), direcao: 1
+                        vida: 300 + (mult * 60), vidaMax: 300 + (mult * 60), direcao: 1
                     };
                     setChefaoRender({ ...chefaoRef.current });
-                    adicionarParticula(50, 20, "ALERTA: CHEFÃO DETECTADO!", "#ef4444");
+                    adicionarParticula(50, 20, "ALERTA: CHEFÃO DE COMBATE!", "#ef4444");
                     if (audioRef.current) audioRef.current.pause();
                     if (bossAudioRef.current) {
                         bossAudioRef.current.volume = 0.6;
@@ -150,7 +152,8 @@ export function useGameEngine() {
                     }
                 }
 
-                if (tiroTimerRef.current >= 0.32) {
+                // Tiro do Jogador
+                if (tiroTimerRef.current >= 0.30) {
                     tiroTimerRef.current = 0;
                     const xAtual = posPlayerRef.current;
                     if (laserDuploRef.current) {
@@ -163,49 +166,84 @@ export function useGameEngine() {
                     }
                 }
 
-                if (!chefaoRef.current.ativo && spawnTimer >= taxaSpawn && objetosRef.current.length < 14) {
-                    spawnTimer = 0;
-                    const rand = Math.random();
-                    let tipoAleatorio: Entidade['tipo'] = 'inimigo';
-                    if (rand > 0.94) tipoAleatorio = 'bomba';
-                    else if (rand > 0.88) tipoAleatorio = 'laser_duplo';
-                    else if (rand > 0.80) tipoAleatorio = 'escudo';
-                    else if (rand > 0.70) tipoAleatorio = 'vida';
-                    else if (rand > 0.52) tipoAleatorio = 'meteoro';
-
-                    objetosRef.current.push({ id: Date.now() + Math.random(), x: Math.random() * 82 + 9, y: 0, tipo: tipoAleatorio });
-                }
-
+                // Comportamento e tiro do Chefão
                 if (chefaoRef.current.ativo) {
-                    chefaoRef.current.x += chefaoRef.current.direcao * 25 * delta;
-                    if (chefaoRef.current.x > 80 || chefaoRef.current.x < 20) chefaoRef.current.direcao *= -1;
+                    chefaoRef.current.x += chefaoRef.current.direcao * (28 + mult * 3) * delta;
+                    if (chefaoRef.current.x > 82 || chefaoRef.current.x < 18) chefaoRef.current.direcao *= -1;
+                    
+                    bossShootTimerRef.current += delta;
+                    if (bossShootTimerRef.current >= 0.9) {
+                        bossShootTimerRef.current = 0;
+                        // O boss dispara contra o player ou rajada tripla
+                        tirosRef.current.push(
+                            { id: Date.now() + Math.random(), x: chefaoRef.current.x - 4, y: 25, tipo: 'boss' },
+                            { id: Date.now() + Math.random(), x: chefaoRef.current.x + 4, y: 25, tipo: 'boss' }
+                        );
+                    }
                     setChefaoRender({ ...chefaoRef.current });
                 }
 
-                const velocidadeQueda = (40 + (mult * 9)) * delta;
-                const velocidadeTiro = 110 * delta;
+                if (!chefaoRef.current.ativo && spawnTimer >= taxaSpawn && objetosRef.current.length < 12) {
+                    spawnTimer = 0;
+                    const rand = Math.random();
+                    let tipoAleatorio: Entidade['tipo'] = 'inimigo';
+                    if (rand > 0.93) tipoAleatorio = 'bomba';
+                    else if (rand > 0.86) tipoAleatorio = 'laser_duplo';
+                    else if (rand > 0.78) tipoAleatorio = 'escudo';
+                    else if (rand > 0.68) tipoAleatorio = 'vida';
+                    else if (rand > 0.50) tipoAleatorio = 'meteoro';
+
+                    objetosRef.current.push({ id: Date.now() + Math.random(), x: Math.random() * 80 + 10, y: 0, tipo: tipoAleatorio });
+                }
+
+                const velocidadeQueda = (45 + (mult * 8)) * delta;
+                const velocidadeTiro = 120 * delta;
                 const playerX = posPlayerRef.current;
 
+                // Atualizar Posição dos Tiros
                 let novosTiros: Tiro[] = [];
                 for (let t = 0; t < tirosRef.current.length; t++) {
                     let tiro = tirosRef.current[t];
-                    let novoTiroY = tiro.y - velocidadeTiro;
-                    if (novoTiroY > 0) novosTiros.push({ ...tiro, y: novoTiroY });
+                    if (tiro.tipo === 'boss') {
+                        let novoTiroY = tiro.y + (velocidadeQueda * 1.2);
+                        // Colisão do tiro do boss com o player
+                        if (novoYNoRange(novoTiroY, 75, 5) && Math.abs(tiro.x - playerX) < 7) {
+                            if (temEscudoRef.current) {
+                                setTemEscudo(false);
+                                adicionarParticula(playerX, 75, "ESCUDO BLOQUEOU!", "#38bdf8");
+                            } else {
+                                const novaVida = Math.max(0, vidaRef.current - 20);
+                                setVida(novaVida);
+                                dispararTremido();
+                                if (novaVida <= 0) {
+                                    setGameOver(true);
+                                    if (bossAudioRef.current) bossAudioRef.current.pause();
+                                    if (audioRef.current) audioRef.current.pause();
+                                }
+                            }
+                            continue; // remove o tiro
+                        }
+                        if (novoTiroY < 100) novosTiros.push({ ...tiro, y: novoTiroY });
+                    } else {
+                        let novoTiroY = tiro.y - velocidadeTiro;
+                        if (novoTiroY > 0) novosTiros.push({ ...tiro, y: novoTiroY });
+                    }
                 }
                 tirosRef.current = novosTiros;
 
+                // Colisão tiros do player no Chefão
                 if (chefaoRef.current.ativo) {
                     for (let t = 0; t < tirosRef.current.length; t++) {
                         let tiro = tirosRef.current[t];
-                        if (Math.abs(tiro.x - chefaoRef.current.x) < 14 && Math.abs(tiro.y - chefaoRef.current.y) < 8) {
+                        if (tiro.tipo !== 'boss' && Math.abs(tiro.x - chefaoRef.current.x) < 12 && Math.abs(tiro.y - chefaoRef.current.y) < 8) {
                             tirosRef.current.splice(t, 1);
-                            chefaoRef.current.vida -= (tiro.tipo === 'duplo' ? 12 : 7);
-                            adicionarParticula(tiro.x, tiro.y, "-DANO", "#a855f7");
+                            chefaoRef.current.vida -= (tiro.tipo === 'duplo' ? 14 : 8);
+                            adicionarParticula(tiro.x, tiro.y, "-HIT", "#f43f5e");
                             if (chefaoRef.current.vida <= 0) {
                                 chefaoRef.current.ativo = false;
                                 setChefaoRender(null);
-                                setScore(s => s + 800);
-                                adicionarParticula(50, 25, "+800 CHEFÃO!", "#f59e0b");
+                                setScore(s => s + 1000);
+                                adicionarParticula(50, 25, "+1000 CHEFE ELIMINADO!", "#38bdf8");
                                 if (bossAudioRef.current) bossAudioRef.current.pause();
                                 if (audioRef.current && !pausado) audioRef.current.play().catch(() => {});
                             } else {
@@ -216,48 +254,47 @@ export function useGameEngine() {
                     }
                 }
 
+                // Atualizar Entidades Quedas
                 let novasEntidades: Entidade[] = [];
                 for (let i = 0; i < objetosRef.current.length; i++) {
                     let obj = objetosRef.current[i];
-                    let velAtual = obj.tipo === 'meteoro' ? velocidadeQueda * 1.6 : velocidadeQueda;
+                    let velAtual = obj.tipo === 'meteoro' ? velocidadeQueda * 1.5 : velocidadeQueda;
                     let novoY = obj.y + velAtual;
 
                     let atingidoPorTiro = false;
                     for (let t = 0; t < tirosRef.current.length; t++) {
                         let tiro = tirosRef.current[t];
-                        if (Math.abs(tiro.x - obj.x) < 7 && Math.abs(tiro.y - novoY) < 7) {
+                        if (tiro.tipo !== 'boss' && Math.abs(tiro.x - obj.x) < 6 && Math.abs(tiro.y - novoY) < 6) {
                             atingidoPorTiro = true;
                             tirosRef.current.splice(t, 1);
-                            if (obj.tipo === 'meteoro' || obj.tipo === 'inimigo') {
-                                const pts = obj.tipo === 'meteoro' ? 35 : 12;
-                                setScore(s => s + pts);
-                                adicionarParticula(obj.x, novoY, `+${pts}`, obj.tipo === 'meteoro' ? '#f59e0b' : '#38bdf8');
-                            }
+                            const pts = obj.tipo === 'meteoro' ? 30 : 15;
+                            setScore(s => s + pts);
+                            adicionarParticula(obj.x, novoY, `+${pts}`, '#38bdf8');
                             break;
                         }
                     }
 
                     if (atingidoPorTiro) continue;
 
-                    if (novoY >= 72 && novoY <= 85 && Math.abs(obj.x - playerX) < 10) {
+                    if (novoY >= 72 && novoY <= 85 && Math.abs(obj.x - playerX) < 9) {
                         if (obj.tipo === 'vida') {
                             setVida(v => Math.min(100, v + 25));
-                            adicionarParticula(playerX, 75, "+25 HP", "#ef4444");
+                            adicionarParticula(playerX, 75, "+25 HP", "#f43f5e");
                         } else if (obj.tipo === 'escudo') {
                             setTemEscudo(true);
-                            adicionarParticula(playerX, 75, "ESCUDO!", "#3b82f6");
+                            adicionarParticula(playerX, 75, "ESCUDO ATIVO", "#38bdf8");
                         } else if (obj.tipo === 'laser_duplo') {
                             setLaserDuploAtivo(true);
                             laserTimerRef.current = 0;
-                            adicionarParticula(playerX, 75, "DUPLO!", "#06b6d4");
+                            adicionarParticula(playerX, 75, "LASER DUPLO", "#06b6d4");
                         } else if (obj.tipo === 'bomba') {
                             ativarBombaNuclear();
                         } else {
                             if (temEscudoRef.current) {
                                 setTemEscudo(false);
-                                adicionarParticula(playerX, 75, "BLOQUEADO!", "#3b82f6");
+                                adicionarParticula(playerX, 75, "BLOQUEADO", "#38bdf8");
                             } else {
-                                const dano = obj.tipo === 'meteoro' ? 35 : (15 + (mult * 2));
+                                const dano = obj.tipo === 'meteoro' ? 30 : 15;
                                 const novaVida = Math.max(0, vidaRef.current - dano);
                                 setVida(novaVida);
                                 dispararTremido();
@@ -299,18 +336,20 @@ export function useGameEngine() {
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
 
+    const novoYNoRange = (y: number, target: number, range: number) => Math.abs(y - target) <= range;
+
     const handleMove = (clientX: number) => {
         if (!containerRef.current || !iniciado || pausado || gameOver) return;
         const rect = containerRef.current.getBoundingClientRect();
         let porcentagem = ((clientX - rect.left) / rect.width) * 100;
-        porcentagem = Math.max(5, Math.min(95, porcentagem));
+        porcentagem = Math.max(6, Math.min(94, porcentagem));
         posPlayerRef.current = porcentagem;
         setPosRender(porcentagem);
     };
 
     const resetarJogo = () => {
         if (bossAudioRef.current) bossAudioRef.current.pause();
-        setScore(0); setVida(100); setTemEscudo(false); setLaserDuploAtivo(false); setSuperCarga(0);
+        setScore(0); setVida(100); setTemEscudo(false); setLaserDuploAtivo(false);
         objetosRef.current = []; tirosRef.current = []; particulasRef.current = [];
         chefaoRef.current = { ativo: false, x: 50, y: 15, vida: 200, vidaMax: 200, direcao: 1 };
         setChefaoRender(null); setObjetosRender([]); setTirosRender([]);
@@ -319,9 +358,9 @@ export function useGameEngine() {
 
     return {
         iniciado, setIniciado, pausado, setPausado, score, highScore, vida, temEscudo,
-        laserDuploAtivo, superCarga, gameOver, isFullScreen, shake, naveSelecionada,
+        laserDuploAtivo, gameOver, isFullScreen, shake, naveSelecionada,
         setNaveSelecionada, musicaSelecionada, posRender, objetosRender, tirosRender,
         particulasRender, chefaoRender, containerRef, audioRef, bossAudioRef,
-        toggleFullScreen, handleMove, resetarJogo
+        toggleFullScreen, handleMove, resetarJogo, ativarBombaNuclear
     };
 }
