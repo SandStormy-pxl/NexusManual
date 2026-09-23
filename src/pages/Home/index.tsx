@@ -451,6 +451,17 @@ export function Home() {
         setGameOver(false);
         setIniciado(true);
         setPausado(false);
+                                  if (chefaoRef.current.vida <= 0) {
+                                chefaoRef.current.ativo = false;
+                                setChefaoRender(null);
+                                setScore(s => s + 800);
+                                adicionarParticula(50, 25, "+800 CHEFÃO DESTRUÍDO!", "#f59e0b");
+
+                                // Desliga o tema do boss e retoma o normal
+                                if (bossAudioRef.current) bossAudioRef.current.pause();
+                                if (audioRef.current && !pausado) audioRef.current.play().catch(() => {});
+                            }
+
     };
 
     const IconeNave = naveSelecionada.icone;
