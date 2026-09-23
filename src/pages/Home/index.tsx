@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { Shield, Sparkles, Rocket, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize } from 'lucide-preact';
+import { Shield, Sparkles, Rocket, Trophy, Play, RotateCcw, Pause, Heart, Flame, Award, Maximize, Minimize, Sparkle } from 'lucide-preact';
 
 interface Entidade {
     id: number;
     x: number;
     y: number;
-    tipo: 'inimigo' | 'vida';
+    tipo: 'inimigo' | 'vida' | 'meteoro';
+}
+
+interface Tiro {
+    id: number;
+    x: number;
+    y: number;
 }
 
 export function Home() {
@@ -17,13 +23,16 @@ export function Home() {
     const [vida, setVida] = useState(100);
     const [gameOver, setGameOver] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [shake, setShake] = useState(false);
 
     const posPlayerRef = useRef(50);
     const [posRender, setPosRender] = useState(50);
 
     const [objetosRender, setObjetosRender] = useState<Entidade[]>([]);
+    const [tirosRender, setTirosRender] = useState<Tiro[]>([]);
     
     const objetosRef = useRef<Entidade[]>([]);
+    const tirosRef = useRef<Tiro[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
     const gameState = useRef({ iniciado: false, pausado: false, gameOver: false });
 
@@ -39,6 +48,7 @@ export function Home() {
     highScoreRef.current = highScore;
 
     const scoreTimerRef = useRef(0);
+    const tiroTimerRef = useRef(0);
 
     useEffect(() => {
         const salvo = localStorage.getItem('nexus_highscore');
@@ -69,6 +79,11 @@ export function Home() {
         }
     };
 
+    const dispararTremido = () => {
+        setShake(true);
+        setTimeout(() => setShake(false), 200);
+    };
+
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden && iniciado && !gameOver && !pausado) {
@@ -93,7 +108,6 @@ export function Home() {
         };
     }, [iniciado, gameOver, pausado]);
 
-    // CONTROLE CENTRALIZADO DE ÁUDIO (Sem travar o loop de física)
     useEffect(() => {
         if (!audioRef.current) return;
 
@@ -109,7 +123,7 @@ export function Home() {
     const multiplicadorRef = useRef(multiplicador);
     multiplicadorRef.current = multiplicador;
 
-    // LOOP DE FÍSICA LIMPO
+    // LOOP DE FÍSICA E COLISÕES
     useEffect(() => {
         let animationFrameId: number;
         let lastTime = performance.now();
@@ -122,13 +136,28 @@ export function Home() {
             if (gameState.current.iniciado && !gameState.current.pausado && !gameState.current.gameOver) {
                 spawnTimer += delta;
                 scoreTimerRef.current += delta;
+                tiroTimerRef.current += delta;
 
                 const mult = multiplicadorRef.current;
                 const taxaSpawn = Math.max(0.4, 1.2 - (mult * 0.08));
 
+                // Disparo automático de laser da torre a cada 0.4s
+                if (tiroTimerRef.current >= 0.4) {
+                    tiroTimerRef.current = 0;
+                    tirosRef.current.push({
+                        id: Date.now() + Math.random(),
+                        x: posPlayerRef.current,
+                        y: 75
+                    });
+                }
+
                 if (spawnTimer >= taxaSpawn && objetosRef.current.length < 10) {
                     spawnTimer = 0;
-                    const tipoAleatorio: 'inimigo' | 'vida' = Math.random() > 0.88 ? 'vida' : 'inimigo';
+                    const rand = Math.random();
+                    let tipoAleatorio: 'inimigo' | 'vida' | 'meteoro' = 'inimigo';
+                    if (rand > 0.90) tipoAleatorio = 'vida';
+                    else if (rand > 0.75) tipoAleatorio = 'meteoro';
+
                     objetosRef.current.push({
                         id: Date.now() + Math.random(),
                         x: Math.random() * 84 + 8,
@@ -138,39 +167,72 @@ export function Home() {
                 }
 
                 const velocidadeQueda = (35 + (mult * 8)) * delta;
+                const velocidadeTiro = 90 * delta;
                 const playerX = posPlayerRef.current;
+
+                // Atualizar tiros e checar colisão com inimigos/meteoros
+                let novosTiros: Tiro[] = [];
+                for (let t = 0; t < tirosRef.current.length; t++) {
+                    let tiro = tirosRef.current[t];
+                    let novoTiroY = tiro.y - velocidadeTiro;
+                    if (novoTiroY > 0) {
+                        novosTiros.push({ ...tiro, y: novoTiroY });
+                    }
+                }
+                tirosRef.current = novosTiros;
 
                 let novasEntidades: Entidade[] = [];
                 for (let i = 0; i < objetosRef.current.length; i++) {
                     let obj = objetosRef.current[i];
-                    let novoY = obj.y + velocidadeQueda;
+                    let velAtual = obj.tipo === 'meteoro' ? velocidadeQueda * 1.6 : velocidadeQueda;
+                    let novoY = obj.y + velAtual;
 
+                    // Verificar se tiro acertou o objeto
+                    let atingidoPorTiro = false;
+                    for (let t = 0; t < tirosRef.current.length; t++) {
+                        let tiro = tirosRef.current[t];
+                        if (Math.abs(tiro.x - obj.x) < 6 && Math.abs(tiro.y - novoY) < 6) {
+                            atingidoPorTiro = true;
+                            tirosRef.current.splice(t, 1); // remove o tiro
+                            if (obj.tipo === 'meteoro' || obj.tipo === 'inimigo') {
+                                setScore(s => s + (obj.tipo === 'meteoro' ? 25 : 10));
+                            }
+                            break;
+                        }
+                    }
+
+                    if (atingidoPorTiro) continue; // Destruído pelo tiro
+
+                    // Colisão com a base/player
                     if (novoY >= 72 && novoY <= 85 && Math.abs(obj.x - playerX) < 10) {
                         if (obj.tipo === 'vida') {
                             const novaVida = Math.min(100, vidaRef.current + 25);
                             setVida(novaVida);
+                        } else if (obj.tipo === 'meteoro') {
+                            const novaVida = Math.max(0, vidaRef.current - 30);
+                            setVida(novaVida);
+                            dispararTremido();
+                            if (novaVida <= 0) setGameOver(true);
                         } else {
                             const dano = 15 + (mult * 2);
                             const novaVida = Math.max(0, vidaRef.current - dano);
                             setVida(novaVida);
-                            if (novaVida <= 0) {
-                                setGameOver(true);
-                            }
+                            dispararTremido();
+                            if (novaVida <= 0) setGameOver(true);
                         }
                         continue;
                     }
 
-                    if (novoY >= 100) {
-                        continue;
-                    }
+                    if (novoY >= 100) continue;
 
                     novasEntidades.push({ ...obj, y: novoY });
                 }
 
                 objetosRef.current = novasEntidades;
                 setObjetosRender([...novasEntidades]);
+                setTirosRender([...tirosRef.current]);
 
-                if (scoreTimerRef.current >= 0.01) { // Ajustado para 0.2s padrão para não subir insano
+                if (scoreTimerRef.current >= 0.2) {
                     scoreTimerRef.current = 0;
                     setScore(s => {
                         const novoScore = s + 1;
@@ -221,7 +283,9 @@ export function Home() {
         setScore(0);
         scoreTimerRef.current = 0;
         objetosRef.current = [];
+        tirosRef.current = [];
         setObjetosRender([]);
+        setTirosRender([]);
         setGameOver(false);
         setPausado(false);
         posPlayerRef.current = 50;
@@ -232,7 +296,8 @@ export function Home() {
     return (
         <div 
             ref={containerRef}
-            className="relative w-full h-screen bg-zinc-950 text-white overflow-hidden select-none flex flex-col justify-between p-3 touch-none">
+            className={`relative w-full h-screen bg-zinc-950 text-white overflow-hidden select-none flex flex-col justify-between p-3 touch-none ${shake ? 'animate-bounce' : ''}`}
+        >
           <audio ref={audioRef} src="/trilha-1.mp3" loop preload="auto" />
             <div className="w-full flex justify-between items-center bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 z-30 shadow-lg gap-1">
                 <div className="flex items-center gap-1 text-cyan-400 font-bold text-xs">
@@ -309,6 +374,16 @@ export function Home() {
             )}
 
             <div className="relative w-full flex-1">
+                {/* Tiros da Torre */}
+                {tirosRender.map(tiro => (
+                    <div
+                        key={tiro.id}
+                        className="absolute transform -translate-x-1/2 w-1 h-3 bg-cyan-300 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.8)] pointer-events-none z-15"
+                        style={{ left: `${tiro.x}%`, top: `${tiro.y}%` }}
+                    />
+                ))}
+
+                {/* Entidades (Inimigos, Vidas e Meteoros) */}
                 {objetosRender.map(obj => (
                     <div
                         key={obj.id}
@@ -317,16 +392,13 @@ export function Home() {
                     >
                         {obj.tipo === 'vida' ? (
                             <Heart className="w-7 h-7 text-red-500 animate-bounce fill-red-500" />
+                        ) : obj.tipo === 'meteoro' ? (
+                            <Sparkle className="w-8 h-8 text-amber-400 animate-spin -rotate-45 fill-amber-500" />
                         ) : (
                             <Sparkles className="w-8 h-8 text-rose-600 animate-pulse" />
                         )}
                     </div>
                 ))}
-
-                <div 
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 text-zinc-600 z-10 will-change-transform"
-                    style={{ left: `${posRender}%`, top: `80%` }}
-                ></div>
 
                 <div
                     className="absolute transform -translate-x-1/2 -translate-y-1/2 text-cyan-400 z-20 will-change-transform"
@@ -339,7 +411,7 @@ export function Home() {
             </div>
 
             <div className="text-xs text-zinc-600 text-center pb-1 z-10">
-                Áudio Blindado • 60 FPS
+                Áudio Blindado • 60 FPS • Retaliação Ativa
             </div>
         </div>
     );
