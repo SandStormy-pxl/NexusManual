@@ -2,9 +2,9 @@ import { Sparkles, Rocket, Zap } from 'lucide-preact';
 import { Nave } from './types';
 
 export const NAVES: Nave[] = [
-    { id: 'padrao', nome: 'Poco Interceptor', corBorda: 'border-cyan-500', corBg: 'bg-cyan-950/80', icone: Rocket },
-    { id: 'furia', nome: 'Fúria Vermelha', corBorda: 'border-rose-500', corBg: 'bg-rose-950/80', icone: Sparkles },
-    { id: 'tita', nome: 'Titã Blindado', corBorda: 'border-amber-500', corBg: 'bg-amber-950/80', icone: Zap }
+    { id: 'padrao', nome: 'Poco Interceptor', corBorda: 'border-cyan-500', corBg: 'bg-cyan-950/40', icone: Rocket },
+    { id: 'furia', nome: 'Fúria Vermelha', corBorda: 'border-rose-500', corBg: 'bg-rose-950/40', icone: Sparkles },
+    { id: 'tita', nome: 'Titã Blindado', corBorda: 'border-amber-500', corBg: 'bg-amber-950/40', icone: Zap }
 ];
 
 export const MUSICAS = [
