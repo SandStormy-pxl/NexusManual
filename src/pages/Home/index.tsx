@@ -40,9 +40,9 @@ interface Nave {
     icone: any;
 }
 const NAVES: Nave[] = [
-    { id: 'padrao', nome: 'Poco Interceptor', corBorda: 'border-cyan-400', corBg: 'bg-cyan-950/80', icone: Rocket },
-    { id: 'furia', nome: 'Fúria Vermelha', corBorda: 'border-rose-500', corBg: 'bg-rose-950/80', icone: Sparkles },
-    { id: 'tita', nome: 'Titã Blindado', corBorda: 'border-amber-400', corBg: 'bg-amber-950/80', icone: Zap }
+    { id: 'padrao', nome: 'Poco Interceptor', corBorda: '', corBg: 'bg-cyan-950/80', icone: Rocket },
+    { id: 'furia', nome: 'Fúria Vermelha', corBorda: '', corBg: 'bg-rose-950/80', icone: Sparkles },
+    { id: 'tita', nome: 'Titã Blindado', corBorda: '', corBg: 'bg-amber-950/80', icone: Zap }
 ];
 
 const MUSICAS = [
@@ -501,7 +501,7 @@ export function Home() {
                                     const Icon = n.icone;
                                     const selecionada = naveSelecionada.id === n.id;
                                     return (
-                                        <button key={n.id} onClick={() => setNaveSelecionada(n)} className={`p-2 rounded-lg border flex flex-col items-center gap-1 transition ${selecionada ? `${n.corBorda}${n.corBg} text-white shadow-lg` : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'}`}>
+                                        <button key={n.id} onClick={() => setNaveSelecionada(n)} className={`p-2 rounded-full flex flex-col items-center gap-1 transition ${selecionada ? `${n.corBorda}${n.corBg} text-white shadow-lg` : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'}`}>
                                             <Icon className="w-5 h-5" />
                                             <span className="text-[10px] text-center leading-tight">{n.nome.split(' ')[0]}</span>
                                         </button>
