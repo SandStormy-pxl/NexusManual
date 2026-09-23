@@ -39,12 +39,12 @@
   <circle cx="100" cy="172" r="5" fill="url(#gradientId)" />
   <circle cx="28" cy="100" r="5" fill="url(#gradientId)" />
 
-  <!-- Monograma "N" em traço tipo tubo neon -->
+  <!-- Ícone de Raio estilizado em neon -->
   <path
-    d="M74 132 V68 L126 132 V68"
-    fill="none"
+    d="M106 62 L82 104 H104 L94 138 L126 92 H102 Z"
+    fill="url(#gradientId)"
     stroke="url(#gradientId)"
-    stroke-width="11"
+    stroke-width="4"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
