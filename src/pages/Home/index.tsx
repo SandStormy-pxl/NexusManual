@@ -12,29 +12,29 @@ export function Home() {
             <audio ref={game.bossAudioRef} src="/boss-theme.mp3" loop />
           
             {!game.iniciado ? (
-                <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-slate-900 via-slate-950 to-black z-10">
+                <div className="flex-1 flex flex-col justify-between p-6 bg-slate-950 z-10">
                     <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-full">
-                            <Flame className="w-4 h-4 text-cyan-400 animate-pulse" />
+                        <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-800/80 px-3 py-1.5 rounded-full">
+                            <Flame className="w-4 h-4 text-cyan-400" />
                             <span className="text-xs tracking-wider uppercase text-cyan-400 font-bold">NEXUS STRIKE</span>
                         </div>
-                        <button onClick={game.toggleFullScreen} className="p-2 bg-slate-900/80 border border-slate-800 rounded-full text-slate-400 hover:text-white">
+                        <button onClick={game.toggleFullScreen} className="p-2 bg-slate-900/60 border border-slate-800/80 rounded-full text-slate-400 hover:text-white">
                             {game.isFullScreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
                         </button>
                     </div>
 
                     <div className="my-auto space-y-6 text-center">
                         <div className="relative inline-block">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl blur-md opacity-40 animate-pulse"></div>
-                            <div className="relative bg-slate-900 border border-slate-700/80 p-6 rounded-2xl shadow-xl">
-                                <Rocket className="w-16 h-16 mx-auto text-cyan-400 mb-2 animate-bounce" />
-                                <h1 className="text-2xl font-black tracking-tight text-white uppercase">Nexus Strike</h1>
-                                <p className="text-xs text-slate-400 mt-1">Arcade Espacial Mobile</p>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 rounded-2xl blur-lg"></div>
+                            <div className="relative bg-slate-900/80 border border-slate-800 p-6 rounded-2xl backdrop-blur-md">
+                                <Rocket className="w-14 h-14 mx-auto text-cyan-400 mb-3" />
+                                <h1 className="text-xl font-black tracking-tight text-white uppercase">Nexus Strike</h1>
+                                <p className="text-[11px] text-slate-400 mt-1">Arcade Espacial Otimizado</p>
                             </div>
                         </div>
 
-                        <div className="space-y-3 text-left bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-300">
-                            <p className="font-bold text-cyan-400 uppercase tracking-wide">Esquadrão:</p>
+                        <div className="space-y-3 text-left bg-slate-900/40 p-4 rounded-xl border border-slate-800/60 text-xs text-slate-300">
+                            <p className="font-bold text-cyan-400 uppercase tracking-wide text-[10px]">Esquadrão Ativo:</p>
                             <div className="grid grid-cols-3 gap-2">
                                 {NAVES.map((n) => {
                                     const Icon = n.icone;
@@ -43,7 +43,7 @@ export function Home() {
                                         <button 
                                             key={n.id} 
                                             onClick={() => game.setNaveSelecionada(n)} 
-                                            className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition ${selecionada ? `${n.corBorda}${n.corBg} text-white shadow-lg` : 'border-slate-800 bg-slate-950 text-slate-400'}`}
+                                            className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition ${selecionada ? `${n.corBorda} bg-slate-900 text-white shadow-md` : 'border-slate-800/80 bg-slate-950 text-slate-500'}`}
                                         >
                                             <Icon className="w-5 h-5" />
                                             <span className="text-[10px] text-center">{n.nome.split(' ')[0]}</span>
@@ -56,15 +56,14 @@ export function Home() {
 
                     <div className="space-y-3 pb-4">
                         <button onClick={() => {
-    game.setIniciado(true);
-    if (game.audioRef.current) {
-        game.audioRef.current.volume = 0.5;
-        game.audioRef.current.play().catch(e => console.log("Áudio bloqueado pelo browser:", e));
-    }
-}} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-black uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2">
-    <Play className="w-5 h-5 fill-black" /> Iniciar Missão
-</button>
-
+                            game.setIniciado(true);
+                            if (game.audioRef.current) {
+                                game.audioRef.current.volume = 0.5;
+                                game.audioRef.current.play().catch(() => {});
+                            }
+                        }} className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/10 flex items-center justify-center gap-2 transition">
+                            <Play className="w-5 h-5 fill-black" /> Iniciar Missão
+                        </button>
                     </div>
                 </div>
             ) : (
@@ -72,108 +71,123 @@ export function Home() {
                     ref={game.containerRef}
                     onMouseMove={(e) => game.handleMove(e.clientX)}
                     onTouchMove={(e) => e.touches.length > 0 && game.handleMove(e.touches[0].clientX)}
-                    className={`flex-1 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black ${game.shake ? 'animate-bounce' : ''}`}
+                    className={`flex-1 relative overflow-hidden bg-slate-950 ${game.shake ? 'animate-bounce' : ''}`}
                 >
-                    <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-slate-950/90 to-transparent">
+                    {/* Header Minimalista */}
+                    <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-slate-950 via-slate-950/40 to-transparent">
                         <div className="flex items-center gap-3">
-                            <button onClick={() => game.setPausado(!game.pausado)} className="p-2 bg-slate-900/80 border border-slate-800 rounded-lg text-slate-300">
+                            <button onClick={() => game.setPausado(!game.pausado)} className="p-2 bg-slate-900/60 border border-slate-800 rounded-lg text-slate-300">
                                 {game.pausado ? <Play className="w-4 h-4 fill-white" /> : <Pause className="w-4 h-4 fill-white" />}
                             </button>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-500">Score</span>
-                                <span className="text-sm font-bold text-cyan-400">{game.score}</span>
+                                <span className="text-[9px] text-slate-500 uppercase">Pontos</span>
+                                <span className="text-xs font-bold text-cyan-400">{game.score}</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            <button onClick={game.ativarBombaNuclear} className="px-3 py-1.5 bg-rose-950/60 border border-rose-800/80 rounded-lg text-rose-400 text-[10px] font-bold flex items-center gap-1 active:scale-95 transition">
+                                <Bomb className="w-3.5 h-3.5" /> BOMBA
+                            </button>
                             <div className="flex flex-col items-end">
-                                <span className="text-[10px] text-slate-500">Recorde</span>
-                                <span className="text-sm font-bold text-amber-400">{game.highScore}</span>
+                                <span className="text-[9px] text-slate-500 uppercase">Recorde</span>
+                                <span className="text-xs font-bold text-amber-400">{game.highScore}</span>
                             </div>
                         </div>
                     </div>
 
+                    {/* Barra de Vida & Status */}
                     <div className="absolute top-16 left-4 right-4 z-20 space-y-1">
                         <div className="flex justify-between items-center text-[10px] font-bold">
-                            <span className="text-rose-400 flex items-center gap-1"><Heart className="w-3 h-3 fill-rose-500 text-rose-500" /> HP: {game.vida}%</span>
-                            {game.temEscudo && <span className="text-blue-400">ESCUDO</span>}
-                            {game.laserDuploAtivo && <span className="text-cyan-400">DUPLO</span>}
+                            <span className="text-rose-400 flex items-center gap-1"><Heart className="w-3 h-3 fill-rose-500 text-rose-500" /> {game.vida}%</span>
+                            <div className="flex gap-2">
+                                {game.temEscudo && <span className="text-cyan-400">ESCUDO</span>}
+                                {game.laserDuploAtivo && <span className="text-cyan-300">DUPLO</span>}
+                            </div>
                         </div>
-                        <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                        <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden border border-slate-800/80">
                             <div className="h-full bg-rose-500 transition-all duration-200" style={{ width: `${game.vida}%` }}></div>
                         </div>
                     </div>
 
+                    {/* HUD do Chefão Atualizada */}
                     {game.chefaoRender?.ativo && (
-                        <div className="absolute top-24 left-4 right-4 z-20 bg-rose-950/40 border border-rose-500/60 p-2 rounded-xl backdrop-blur-sm">
+                        <div className="absolute top-24 left-4 right-4 z-20 bg-slate-900/80 border border-rose-500/40 p-2.5 rounded-xl backdrop-blur-md">
                             <div className="flex justify-between items-center text-[10px] font-bold text-rose-400 mb-1">
-                                <span>CHEFÃO</span>
-                                <span>{Math.max(0, game.chefaoRender.vida)} / {game.chefaoRender.vidaMax} HP</span>
+                                <span className="flex items-center gap-1"><Flame className="w-3 h-3" /> CHEFÃO DE COMBATE</span>
+                                <span>{Math.max(0, game.chefaoRender.vida)} / {game.chefaoRender.vidaMax}</span>
                             </div>
-                            <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-rose-900">
+                            <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-rose-950">
                                 <div className="h-full bg-rose-600 transition-all duration-100" style={{ width: `${(game.chefaoRender.vida / game.chefaoRender.vidaMax) * 100}%` }}></div>
                             </div>
                         </div>
                     )}
 
+                    {/* Render do Chefão na Tela */}
                     {game.chefaoRender?.ativo && (
                         <div className="absolute -translate-x-1/2 -translate-y-1/2 z-20 transition-all duration-75" style={{ left: `${game.chefaoRender.x}%`, top: `${game.chefaoRender.y}%` }}>
-                            <div className="w-20 h-12 bg-rose-950 border-2 border-rose-500 rounded-2xl flex items-center justify-center animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.7)]">
-                                <Flame className="w-6 h-6 text-rose-400" />
+                            <div className="w-20 h-12 bg-rose-950/60 border border-rose-500 rounded-xl flex items-center justify-center shadow-lg shadow-rose-950/50">
+                                <Flame className="w-6 h-6 text-rose-500 animate-pulse" />
                             </div>
                         </div>
                     )}
 
+                    {/* Tiros */}
                     {game.tirosRender.map(t => (
-                        <div key={t.id} className="absolute w-1 h-3 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)] -translate-x-1/2 -translate-y-1/2" style={{ left: `${t.x}%`, top: `${t.y}%` }} />
+                        <div key={t.id} className={`absolute rounded-full -translate-x-1/2 -translate-y-1/2 ${t.tipo === 'boss' ? 'w-2 h-2 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]' : 'w-1 h-3 bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]'}`} style={{ left: `${t.x}%`, top: `${t.y}%` }} />
                     ))}
 
+                    {/* Entidades */}
                     {game.objetosRender.map(o => (
                         <div key={o.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center" style={{ left: `${o.x}%`, top: `${o.y}%` }}>
-                            {o.tipo === 'meteoro' && <div className="w-8 h-8 rounded-full bg-amber-900/80 border border-amber-500 flex items-center justify-center"><Disc className="w-5 h-5 text-amber-400 animate-spin" /></div>}
-                            {o.tipo === 'inimigo' && <div className="w-7 h-7 rounded-lg bg-rose-950/80 border border-rose-500 flex items-center justify-center"><Flame className="w-4 h-4 text-rose-400" /></div>}
-                            {o.tipo === 'vida' && <div className="w-6 h-6 rounded-full bg-rose-900 border border-rose-400 flex items-center justify-center"><Heart className="w-3 h-3 text-white fill-white" /></div>}
-                            {o.tipo === 'escudo' && <div className="w-6 h-6 rounded-full bg-blue-900 border border-blue-400 flex items-center justify-center"><Shield className="w-3 h-3 text-white" /></div>}
-                            {o.tipo === 'laser_duplo' && <div className="w-6 h-6 rounded-full bg-cyan-900 border border-cyan-400 flex items-center justify-center"><Zap className="w-3 h-3 text-cyan-300" /></div>}
-                            {o.tipo === 'bomba' && <div className="w-6 h-6 rounded-full bg-amber-950 border border-amber-500 flex items-center justify-center"><Bomb className="w-3 h-3 text-amber-400" /></div>}
+                            {o.tipo === 'meteoro' && <div className="w-7 h-7 rounded-full bg-slate-900 border border-amber-500/80 flex items-center justify-center"><Disc className="w-4 h-4 text-amber-400" /></div>}
+                            {o.tipo === 'inimigo' && <div className="w-6 h-6 rounded-lg bg-slate-900 border border-rose-500/80 flex items-center justify-center"><Flame className="w-3.5 h-3.5 text-rose-400" /></div>}
+                            {o.tipo === 'vida' && <div className="w-6 h-6 rounded-full bg-slate-900 border border-rose-400 flex items-center justify-center"><Heart className="w-3 h-3 text-rose-400 fill-rose-400" /></div>}
+                            {o.tipo === 'escudo' && <div className="w-6 h-6 rounded-full bg-slate-900 border border-cyan-400 flex items-center justify-center"><Shield className="w-3 h-3 text-cyan-400" /></div>}
+                            {o.tipo === 'laser_duplo' && <div className="w-6 h-6 rounded-full bg-slate-900 border border-cyan-300 flex items-center justify-center"><Zap className="w-3 h-3 text-cyan-300" /></div>}
+                            {o.tipo === 'bomba' && <div className="w-6 h-6 rounded-full bg-slate-900 border border-amber-400 flex items-center justify-center"><Bomb className="w-3 h-3 text-amber-400" /></div>}
                         </div>
                     ))}
 
+                    {/* Partículas de Texto */}
                     {game.particulasRender.map(p => (
-                        <div key={p.id} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-black pointer-events-none z-30" style={{ left: `${p.x}%`, top: `${p.y}%`, color: p.cor }}>
+                        <div key={p.id} className="absolute -translate-x-1/2 -translate-y-1/2 text-[10px] font-black pointer-events-none z-30" style={{ left: `${p.x}%`, top: `${p.y}%`, color: p.cor }}>
                             {p.texto}
                         </div>
                     ))}
 
+                    {/* Player */}
                     <div className="absolute bottom-8 -translate-x-1/2 -translate-y-1/2 transition-all duration-75 pointer-events-none" style={{ left: `${game.posRender}%` }}>
-                        <div className={`p-3 rounded-xl border ${game.naveSelecionada.corBorda} ${game.naveSelecionada.corBg} shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center justify-center`}>
-                            {game.temEscudo && <div className="absolute -inset-1 rounded-xl border-2 border-blue-400 animate-ping opacity-55"></div>}
-                            <IconeNave className="w-6 h-6 text-white" />
+                        <div className={`p-2.5 rounded-xl border ${game.naveSelecionada.corBorda} ${game.naveSelecionada.corBg} shadow-lg flex items-center justify-center`}>
+                            {game.temEscudo && <div className="absolute -inset-1 rounded-xl border border-cyan-400 animate-ping opacity-40"></div>}
+                            <IconeNave className="w-5 h-5 text-white" />
                         </div>
                     </div>
 
+                    {/* Pausa */}
                     {game.pausado && !game.gameOver && (
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-6 text-center space-y-4">
-                            <h2 className="text-xl font-black text-white uppercase">Jogo Pausado</h2>
-                            <button onClick={() => game.setPausado(false)} className="w-full max-w-xs py-3 bg-cyan-500 text-black font-bold rounded-xl">Retomar</button>
+                        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                            <h2 className="text-lg font-black text-white uppercase">Jogo Pausado</h2>
+                            <button onClick={() => game.setPausado(false)} className="w-full max-w-xs py-3 bg-cyan-500 text-black font-bold rounded-xl text-xs uppercase">Retomar</button>
                         </div>
                     )}
 
+                    {/* Game Over */}
                     {game.gameOver && (
-                        <div className="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center space-y-6">
-                            <div className="space-y-2">
-                                <Award className="w-10 h-10 text-rose-400 mx-auto" />
-                                <h2 className="text-2xl font-black text-rose-500 uppercase">Missão Fracassada</h2>
+                        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center space-y-6">
+                            <div className="space-y-1">
+                                <Award className="w-8 h-8 text-rose-500 mx-auto" />
+                                <h2 className="text-xl font-black text-rose-500 uppercase">Missão Fracassada</h2>
                             </div>
-                            <div className="w-full max-w-xs bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2 text-sm">
+                            <div className="w-full max-w-xs bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2 text-xs">
                                 <div className="flex justify-between text-slate-400"><span>Pontuação:</span> <span className="text-cyan-400 font-bold">{game.score}</span></div>
                                 <div className="flex justify-between text-slate-400"><span>Recorde:</span> <span className="text-amber-400 font-bold">{game.highScore}</span></div>
                             </div>
                             <div className="w-full max-w-xs space-y-3">
-                                <button onClick={game.resetarJogo} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-black font-black uppercase rounded-xl flex items-center justify-center gap-2">
-                                    <RotateCcw className="w-5 h-5" /> Tentar Novamente
+                                <button onClick={game.resetarJogo} className="w-full py-3 bg-cyan-500 text-black font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2">
+                                    <RotateCcw className="w-4 h-4" /> Tentar Novamente
                                 </button>
                                 <button onClick={() => game.setIniciado(false)} className="w-full py-3 bg-slate-900 border border-slate-800 text-slate-300 font-bold uppercase text-xs rounded-xl">
-                                    Menu
+                                    Menu Principal
                                 </button>
                             </div>
                         </div>
