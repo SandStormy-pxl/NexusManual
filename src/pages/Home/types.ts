@@ -9,7 +9,7 @@ export interface Tiro {
     id: number;
     x: number;
     y: number;
-    tipo?: 'normal' | 'duplo';
+    tipo?: 'normal' | 'duplo' | 'boss';
 }
 
 export interface Particula {
